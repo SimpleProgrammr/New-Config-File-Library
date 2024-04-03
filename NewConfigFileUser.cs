@@ -64,18 +64,22 @@
 
             if (line.StartsWith('\"') && line.EndsWith('\"'))
                 return line;
-            if (line.StartsWith('[') && line.EndsWith(']'))
+            else if (line.StartsWith('[') && line.EndsWith(']'))
             {
+                line = line.Replace("[", "").Replace("]", "");
                 if (line.Contains('\"'))
                 {
-                    line = line.Replace("[", "").Replace("]", "");
-                    var val = line.Replace("\"","").Split(',');
+                    var val = line.Replace("\"", "").Trim().Split(',');
                     return val;
+                }
+                else if (line.Contains('.'))
+                {
+                    var val = line.Trim().Split(',');
+                    double[] doubles = new double[val.Length];
+                    double = Convert.ToDouble(val);
                 }
             }
 
-
-                ;
             return "";
         }
 
