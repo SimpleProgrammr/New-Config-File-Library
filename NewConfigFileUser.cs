@@ -6,21 +6,24 @@
         {
             this.filePath = filePath;
             fileLines = File.ReadAllLines(this.filePath);
-            Categories();
+            RepairFile();
+            Map();
         }
 
-        public string[] fileLines;
-
         public string filePath;
-        public string[] CatArray;
-        public int[] CatLocalisations;
-        public string[] VarNames;
+        public string[] fileLines;
+        public List<string> categories = new List<string>();
+        public Dictionary<string, Dictionary<string, object>> values;
 
-        public void Categories()
+        public void RepairFile()
         {
-            var catList = new List<string>();
-            var catLoc = new List<int>();
+
+        }
+
+        public void Map()
+        {
             bool valuesLine = false;
+            string category = "";
             foreach (var line in fileLines)
             {
                 string l = line.Trim();
@@ -38,82 +41,49 @@
                     continue;
                 }
                 if (valuesLine)
+                {
+                    values[category].Add(GetVarName(l), GetVarValue(l));
                     continue;
+                }
 
-                catList.Add(l);
-                catLoc.Add(Array.IndexOf(fileLines, line));
+
+                values.Add(l, new Dictionary<string, object>());
+                category = l;
             }
 
-            CatArray = [.. catList];
-            CatLocalisations = catLoc.ToArray();
         }
 
-        public string[] VariableNames(string CatName)
+        public string GetVarName(string line)
         {
-            if (!CatArray.Contains(CatName))
-                throw new NotImplementedException($"Unable to fing category \"{CatName}\" ");
-
-            bool valuesLine = false;
-            var variableNames = new List<string>();
-
-            for (int i = CatLocalisations[Array.IndexOf(CatArray, CatName)] + 1; ; i++)
-            {
-                
-                if (fileLines[i] == "{")
-                    continue;
-                
-
-                if (fileLines[i] == "}")
-                    break;
-
-
-                if (fileLines[i] == string.Empty)
-                    continue;
-
-                string name = fileLines[i].Remove(Array.IndexOf(fileLines[i].ToArray(), ':')).Trim();
-                variableNames.Add(name);
-            }
-
-            VarNames = variableNames.ToArray();
-            return variableNames.ToArray();
+            return line.Remove(line.IndexOf(":")).Trim();
         }
 
-        public string[] Values(string CatName)
+        public object GetVarValue(string line)
         {
-            if (!CatArray.Contains(CatName))
-                throw new NotImplementedException($"Unable to fing category \"{CatName}\" ");
+            line = line.Substring(line.IndexOf(":")).Trim();
 
-            bool valuesLine = false;
-            var variableNames = new List<string>();
-
-            for (int i = CatLocalisations[Array.IndexOf(CatArray, CatName)] + 1; ; i++)
+            if (line.StartsWith('\"') && line.EndsWith('\"'))
+                return line;
+            if (line.StartsWith('[') && line.EndsWith(']'))
             {
-
-                if (fileLines[i] == "{")
-                    continue;
-
-
-                if (fileLines[i] == "}")
-                    break;
-
-
-                if (fileLines[i] == string.Empty)
-                    continue;
-
-                string name = fileLines[i].Substring(Array.IndexOf(fileLines[i].ToArray(), ':')+1).Trim();
-                variableNames.Add(name);
+                if (line.Contains('\"'))
+                {
+                    line = line.Replace("[", "").Replace("]", "");
+                    var val = line.Replace("\"","").Split(',');
+                    return val;
+                }
             }
 
-            VarNames = variableNames.ToArray();
-            return variableNames.ToArray();
-            
+
+                ;
+            return "";
         }
+
     }
-
-
 
     public class Write
     {
-        
+
     }
+
 }
