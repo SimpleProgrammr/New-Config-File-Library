@@ -2,15 +2,18 @@
 {
     public class Read
     {
-        public Read(string filePath)
+        public Read(string fileP)
         {
-            this.filePath = filePath;
+            if (fileP == null || fileP == string.Empty)
+                throw new ArgumentNullException(nameof(fileP));
+
+            this.filePath = fileP;
             fileLines = File.ReadAllLines(this.filePath);
             RepairFile();
             Map();
         }
 
-        public string filePath;
+        public string filePath { get; set; }
         public string[] fileLines;
 
         public List<string> categories = [];
@@ -34,17 +37,17 @@
                 if (l == "")
                     continue;
 
-                if(l.StartsWith('$')||objectVal)
+                if (l.StartsWith('$') || objectVal)
                 {
                     if (l == "{")
                         continue;
 
-                    if(!objectVal)
-                        ReadObject(lnum, category, l.Replace("$",""));
+                    if (!objectVal)
+                        ReadObject(lnum, category, l.Replace("$", ""));
 
                     objectVal = true;
 
-                    if(l == "}")
+                    if (l == "}")
                         objectVal = false;
 
                     continue;
@@ -75,9 +78,16 @@
 
         public void ReadObject(int lnum, string category, string objname)
         {
-            lnum+=2;
+            lnum += 2;
+            var vals = new Dictionary<string, object>();
+            for (; ; )
+            {
+                if (fileLines[lnum] == "}")
+                    break;
+                vals.Add(GetVarName(fileLines[lnum]), GetVarValue(fileLines[lnum]));
+            }
+            values[category].Add(objname, vals);
 
-            values[category].Add(objname, "");
         }
 
         public string GetVarName(string line) => line.Remove(line.IndexOf(":")).Trim();
@@ -86,7 +96,7 @@
         {
             line = line[line.IndexOf(":")..].Trim();
 
-            switch(GetType(line))
+            switch (GetType(line))
             {
                 case "String":
                     return line;
