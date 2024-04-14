@@ -17,7 +17,7 @@
         public string[] fileLines;
 
         public List<string> categories = [];
-        public Dictionary<string, Dictionary<string, object>> values;
+        public Dictionary<string, Dictionary<string, object>> values = [];
 
         public void RepairFile()
         {
@@ -80,9 +80,9 @@
         {
             lnum += 2;
             var vals = new Dictionary<string, object>();
-            for (; ; )
+            for (; ; lnum++)
             {
-                if (fileLines[lnum] == "}")
+                if (fileLines[lnum].Contains("}"))
                     break;
                 vals.Add(GetVarName(fileLines[lnum]), GetVarValue(fileLines[lnum]));
             }
@@ -90,22 +90,23 @@
 
         }
 
-        public string GetVarName(string line) => line.Remove(line.IndexOf(":")).Trim();
+        public string GetVarName(string line) => line.Split(":")[0].Trim();
+
 
         public object GetVarValue(string line)
         {
-            line = line[line.IndexOf(":")..].Trim();
+            line = line.Split(":")[1].Trim();
 
             switch (GetType(line))
             {
                 case "String":
-                    return line;
+                    return line.Replace("\"","");
 
                 case "Int":
                     return Convert.ToInt32(line);
 
                 case "Double":
-                    return Convert.ToDouble(line);
+                    return Convert.ToDouble(line.Replace('.', ','));
 
                 case "IntList":
                     var ints = new List<int>();
@@ -116,15 +117,15 @@
                     return ints;
 
                 case "StringList":
-                    var val = line.Replace("\"", "").Split(',').ToList();
+                    var val = line.Replace("[", "").Replace("]", "").Replace("\"", "").Split(',').ToList();
                     return val;
 
                 case "DoubleList":
                     var doubles = new List<double>();
 
-                    foreach (var item in line.Split('.'))
+                    foreach (var item in line.Replace("[","").Replace("]","").Split(','))
                     {
-                        doubles.Add(Convert.ToDouble(item.Trim()));
+                        doubles.Add(Convert.ToDouble(item.Replace('.', ',').Trim()));
                     }
                     return doubles;
             }
@@ -141,15 +142,16 @@
                 line = line.Replace("[", "").Replace("]", "");
                 if (line.Contains('\"'))
                 {
-                    return "StringArray";
+                    return "StringList";
                 }
-                else if (line.Contains('.'))
+                else if (line.Contains('.') || line.Contains(','))
                 {
-                    return "DoubleArray";
+
+                    return "DoubleList";
                 }
                 else
                 {
-                    return "IntArray";
+                    return "IntList";
                 }
 
             }
